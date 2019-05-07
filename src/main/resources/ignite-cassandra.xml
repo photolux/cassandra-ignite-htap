@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="org.apache.ignite.cache.store.cassandra.datasource.DataSource" name="cassandra">
+        <property name="contactPoints" value="10.104.1.92"/>
+    </bean>
+
+    <bean class="org.apache.ignite.configuration.IgniteConfiguration">
+        <property name="cacheConfiguration">
+            <list>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="name" value="CatalogCategory"/>
+                    <property name="writeThrough" value="true"/>
+                    <property name="sqlSchema" value="catalog_category"/>
+<!--                    <property name="indexedTypes">
+                        <list>
+                            <value type="java.lang.Class">java.lang.Long</value>
+                            <value type="java.lang.Class">sdw.ignite.CatalogCategory</value>
+                        </list>
+                    </property>-->
+                    <property name="cacheStoreFactory">
+                        <bean class="org.apache.ignite.cache.store.cassandra.CassandraCacheStoreFactory">
+                            <property name="dataSource" ref="cassandra"/>
+                            <property name="persistenceSettings">
+                                <bean class="org.apache.ignite.cache.store.cassandra.persistence.KeyValuePersistenceSettings">
+                                    <constructor-arg type="java.lang.String">
+                                        <value>
+                                            <![CDATA[
+				<persistence keyspace="IgniteTest" table="catalog_category">
+				    <keyPersistence class="java.lang.Long" strategy="PRIMITIVE" column="id"/>
+
+				    <valuePersistence class="sdw.ignite.CatalogCategory" strategy="POJO">
+				    	<field name="name" column="name" />
+        				<field name="description" />
+        				<field name="parentId" index="true"/>
+				    </valuePersistence>
+				</persistence>]]>
+                                        </value>
+                                    </constructor-arg>
+                                </bean>
+                            </property>
+                        </bean>
+                    </property>
+
+                    <property name="queryEntities">
+                        <list>
+                            <bean class="org.apache.ignite.cache.QueryEntity">
+                                <!-- Setting indexed type's key class -->
+                                <property name="keyType" value="java.lang.Long"/>
+
+                                <!-- Setting indexed type's value class -->
+                                <property name="valueType"
+                                          value="sdw.ignite.CatalogCategory"/>
+
+                                <!-- Defining fields that will be either indexed or queryable.
+                                Indexed fields are added to 'indexes' list below.-->
+                                <property name="fields">
+                                    <map>
+                                        <entry key="id" value="java.lang.Long"/>
+                                        <entry key="parentId" value="java.lang.Long"/>
+                                        <entry key="name" value="java.lang.String"/>
+                                        <entry key="description" value="java.lang.String "/>
+                                    </map>
+                                </property>
+
+                                <!-- Defining indexed fields.-->
+                                <property name="indexes">
+                                    <list>
+                                        <!-- Single field (aka. column) index -->
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="id"/>
+                                        </bean>
+
+                                        <!-- Group index. -->
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg>
+                                                <list>
+                                                    <value>id</value>
+                                                    <value>parentId</value>
+                                                </list>
+                                            </constructor-arg>
+                                            <constructor-arg value="SORTED"/>
+                                        </bean>
+                                    </list>
+                                </property>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="name" value="CatalogGood"/>
+                    <property name="readThrough" value="true"/>
+                    <property name="writeThrough" value="true"/>
+                    <property name="sqlSchema" value="catalog_good"/>
+                    <property name="indexedTypes">
+                        <list>
+                            <value type="java.lang.Class">java.lang.Long</value>
+                            <value type="java.lang.Class">sdw.ignite.CatalogGood</value>
+                        </list>
+                    </property>
+                    <property name="cacheStoreFactory">
+                        <bean class="org.apache.ignite.cache.store.cassandra.CassandraCacheStoreFactory">
+                            <property name="dataSource" ref="cassandra"/>
+                            <property name="persistenceSettings">
+                                <bean class="org.apache.ignite.cache.store.cassandra.persistence.KeyValuePersistenceSettings">
+                                    <constructor-arg type="java.lang.String">
+                                        <value><![CDATA[
+                                        <persistence keyspace="IgniteTest" table="catalog_good">
+                                            <keyPersistence class="java.lang.Long" strategy="PRIMITIVE" column="id"/>
+                                            <valuePersistence class="sdw.ignite.CatalogGood" strategy="POJO"/>
+                                        </persistence>]]></value>
+                                    </constructor-arg>
+                                </bean>
+                            </property>
+                        </bean>
+                    </property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+</beans>
